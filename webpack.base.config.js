@@ -11,7 +11,8 @@ module.exports = {
         path: path.join(__dirname, './dist')
     },
     module: {
-        rules: [{
+        rules: [
+            {
                 test: /.vue$/,
                 use: [{
                         loader: 'vue-loader',
@@ -52,7 +53,16 @@ module.exports = {
                     fallback: 'style-loader'
                 })
             },
-
+            {
+                test: /\.less$/,
+                use: [{
+                    loader: "style-loader" // creates style nodes from JS strings
+                }, {
+                    loader: "css-loader" // translates CSS into CommonJS
+                }, {
+                    loader: "less-loader" // compiles Less to CSS
+                }]
+            },
             {
                 test: /\.(gif|jpg|png|woff|svg|eot|ttf)\??.*$/,
                 loader: 'url-loader?limit=1024'
