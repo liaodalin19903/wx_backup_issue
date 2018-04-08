@@ -15,7 +15,7 @@
 
     data () {
       return {
-        banners: [{ src: require('../../../assets/img/home/little-qrcode.png') }, { src: require('../../../assets/img/home/002.png') }, { src: require('../../../assets/img/home/003.png') }],
+        banners: [], //[{ src: require('../../../assets/img/home/little-qrcode.png') }, { src: require('../../../assets/img/home/002.png') }, { src: require('../../../assets/img/home/003.png') }],
         swiperOption: {
           notNextTick: false,
           autoplay: 1000,
@@ -33,6 +33,27 @@
     components: {
       swiper,
       swiperSlide
+    },
+    // 生命周期方法
+    created(){
+      this.init_data()
+    },
+    methods: {
+      // 重建banner数据
+      rebuild_banners(list){
+
+        this.banners = list.map(item => {return {src:item.img}})
+      },
+      // 初始化数据
+      init_data(){
+        this.$http.get(this.$Urls.website.list()).then(response => {
+
+          this.rebuild_banners(response.data)
+        }).catch(response => {
+          this.$Message.error(this.$Utils.convert_error_data_to_str(response.statusText, response.data))
+        })
+      },
+
     }
   }
 </script>

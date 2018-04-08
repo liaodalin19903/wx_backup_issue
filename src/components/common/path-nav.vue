@@ -1,9 +1,9 @@
 <template>
-  <div class="path-nav">
-    <i-breadcrumb>
-      <i-breadcrumb-item for-in="route in routes" to="route.route">{{ route.name }}</i-breadcrumb-item>
-    </i-breadcrumb>
-  </div>
+    <div class="path-nav">
+      <i-breadcrumb class="breadcrmb">
+        <i-breadcrumb-item v-for="route in route_list" :to="route.route">{{ route.name }}</i-breadcrumb-item>
+      </i-breadcrumb>
+    </div>
 </template>
 
 <script>
@@ -24,7 +24,7 @@
 
     props: {
       route_list: {
-        type: list,
+        type: Array,
         default: []
       }
     },
@@ -41,6 +41,12 @@
 
   .path-nav {
     border-bottom: 1px solid #f8f8f8;
+  }
+
+  .breadcrmb {
+    height: 64px;
+    line-height: 64px;
+    margin-left: 20px;
   }
 
 </style>

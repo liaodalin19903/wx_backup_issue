@@ -1,7 +1,10 @@
 <template>
 
   <div class="page-common">
-    ABC
+    <path-nav :route_list="route_list"></path-nav>
+    <router-view></router-view>
+  </div>
+
   </div>
 
 </template>
@@ -14,10 +17,12 @@
 
   import {Checkbox, RadioGroup, Radio} from 'iview'
 
+  import chooseAccountType from './components/choose-account-type.vue'
+
   export default{
     data(){
       return {
-        routes: [
+        route_list: [
           {
             name:"首页",
             route:paths.home
@@ -33,7 +38,8 @@
       'path-nav':PathNav,
       'i-checkbox': Checkbox,
       'i-radio-group': RadioGroup,
-      'i-radio': Radio
+      'i-radio': Radio,
+      'choose-accoun-type':chooseAccountType
     }
   }
 

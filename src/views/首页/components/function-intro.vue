@@ -1,13 +1,13 @@
 <template>
   <div class="function-intro">
     <div class="icon">
-      <Icon class="heart" type="star" size="30"></Icon>
+      <i-icon :name="icon_data.name" scale="5"></i-icon>
     </div>
     <div id="title">
-      <label>备份微信号码</label>
+      <label>{{icon_data.title}}</label>
     </div>
     <div id="content">
-      <span>接入微信开放平台，让你的移动应用支持微信分享、微信收藏和微信支付。</span>
+      <span>{{ icon_data.desc }}</span>
     </div>
     <div id="more">
       <a>了解更多</a>
@@ -17,13 +17,23 @@
 
 <script>
 
-  import {Icon} from 'iview'
 
   export default{
-    data(){
-      return {msg: 'hello vue'}
+    props: {
+      icon_data: {
+        type: Object,
+        require: true
+      }
     },
-    components: {}
+    data(){
+      return {
+        msg: 'hello vue',
+
+      }
+    },
+    components: {
+
+    }
   }
 </script>
 

@@ -5,15 +5,21 @@
         <img src="../../assets/img/common/logo.png">
       </div>
       <ul class="nav">
-        <li class="nav-item" ><router-link :to="homePath" :class="selectedIndex===0 ? 'selected' : '' " @click.native="selectedIndex=0">首页</router-link></li>
-        <li class="nav-item" ><router-link :to="dataCenterPath" :class="selectedIndex===1 ? 'selected' : '' " @click.native="selectedIndex=1">数据中心</router-link></li>
+        <li class="nav-item" ><router-link :to="homePath" exact active-class="selected"  @click.native="selectedIndex=0">首页</router-link></li>
+        <li class="nav-item" ><router-link :to="dataCenterPath" active-class="selected"  @click.native="selectedIndex=1">数据中心</router-link></li>
       </ul>
-      <div class="right-buttons ">
+      <div class="right-buttons">
 
         <div class="qrcode" @mouseover="overShow" @mouseout="outHide" >
           <img src="../../assets/img/home/little-qrcode.png">
         </div>
-        <div class="login-logout">
+
+        <div v-if="user_info" class="welcome">
+          <a @click="welcome_username">欢迎您,{{user_info.username}}!</a>/<a @click="logout">退出</a>
+
+        </div>
+
+        <div v-if="!user_info" class="login-logout">
           <a @click="login">登录</a>/<a @click="register">注册</a>
 
         </div>
@@ -29,12 +35,12 @@
       v-model="loginModal"
       title="登录"
       width="400"
-      @on-ok="ok"
-      @on-cancel="cancel">
+      @on-ok="login_btn"
+      @on-cancel="cancel_btn">
 
       <i-tabs>
-        <i-tab-pane label="手机登录" icon="ios-telephone">
-          <i-input v-model="tel" clearable placeholder="请输入电话" style="width: 300px"></i-input>
+        <i-tab-pane label="用户名登录" icon="ios-username">
+          <i-input v-model="username" clearable placeholder="请输入用户名" style="width: 300px"></i-input>
           <i-input v-model="password" clearable placeholder="请输入密码" type="password" style="width: 300px"></i-input>
           <i-checkbox >是否记住密码</i-checkbox>
           <router-link class="forget-pwd" type="text" :to="forgetPwdPath" @click.native="closeModal" >忘记密码?</router-link>
@@ -67,6 +73,12 @@
     Button
   } from 'iview'
 
+  import Urls from '../../api/backend_urls'
+  import Util from '../../libs/util'
+  import LocalStorageUtil from '../../utils/local_storage_util'
+
+  import { mapState } from "vuex";
+
   export default{
     name: 'iheader',
     data(){
@@ -76,7 +88,7 @@
 
         loginModal: false,  // 登录模态层
 
-        tel: null,
+        username: null,
         email: null,
         password: null,
 
@@ -88,6 +100,11 @@
         forgetPwdPath: paths.forgetPassword,
 
       }
+    },
+    computed: {
+
+      ...mapState(["user_info"])
+
     },
     components: {
       'i-modal':Modal,
@@ -115,22 +132,109 @@
         this.loginModal = true
       },
       register() {
-
+        this.$router.push({path:this.paths.register})
       },
+
+
 
       /* 登录modal */
       // 模态登录:ok
-      ok() {
+      login_btn() {
+
+        // 验证
+        if (!this.username && !this.email) {
+          this.$Message.error("请输入用户名或者邮箱")
+          return
+        }
+
+        if (!this.password) {
+          this.$Message.error("请输入密码")
+          return
+        }
+
+        // 构建参数
+        var params = null
+        if (this.username) {
+          params = {
+            username: this.username,
+            password: this.password
+          }
+        }else {
+          params = {
+            email: this.email,
+            password: this.password
+          }
+        }
+
+        const loading = this.$Message.loading({
+          content: '登录中...',
+          duration: 0
+        });
+
+        var that = this
+
+        // 登录接口请求
+        that.$http.post(Urls.users.login(), params).then((response) => {
+
+          setTimeout(loading, 0)
+          that.$Message.success(Util.convert_error_data_to_str("登录成功"))
+          that.$Cookies.set('token', response.data.key);
+
+          that.get_user_info()
+
+        }).catch((response) => {
+
+            setTimeout(loading, 0)
+            that.$Message.error(Util.convert_error_data_to_str(response.statusText, response.data))
+          }
+        )
 
       },
+      // 请求user信息
+      get_user_info(){
+
+        this.$http.get(this.$Urls.users.user_info()).then((response) => {
+
+          // 用户信息存在localStorage
+          LocalStorageUtil.set('user_info', response.data)
+
+          this.$store.state.user_info = response.data
+        }).catch( (response) => {
+
+          this.$Message.error(Util.convert_error_data_to_str(response.statusText, response.data))
+        })
+      },
+
       // 模态登录:cancel
-      cancel() {
+      cancel_btn() {
 
       },
 
       closeModal() {
         this.loginModal=false
+      },
+
+      // 欢迎您
+      welcome_username() {
+
+
+      },
+      // 退出登录
+      logout() {
+
+        this.$http.post(this.$Urls.users.logout()).then((response) => {
+
+          LocalStorageUtil.clear('user_info')
+
+          this.$store.commit('set_user_info_null')  // store设置为null
+
+          this.$Message.success(Util.convert_error_data_to_str(response.statusText, response.data))
+
+        }).catch((response) => {
+          this.$Message.error(Util.convert_error_data_to_str(response.statusText, response.data))
+        })
       }
+
     },
     props: {
 
@@ -203,7 +307,7 @@
 
   }
 
-  .login-logout {
+  .login-logout, .welcome {
 
     float: right;
     display: inline-block;
@@ -212,7 +316,7 @@
     line-height: 68px;
   }
 
-  .login-logout a {
+  .login-logout a, .welcome a {
     font-size: 14px;
     color: #afafaf;
 
